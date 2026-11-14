@@ -50,6 +50,11 @@ settingsDialog::settingsDialog(QWidget *parent, Settings appSet) : QDialog(paren
 
 	QFormLayout *formLayout = new QFormLayout;
 
+#if defined(VK_USE_PLATFORM_OHOS)
+	// The window width comes from the screen, so a row too wide for it wraps
+	formLayout->setRowWrapPolicy(QFormLayout::WrapLongRows);
+#endif
+
 	QLabel* labelCaption = new QLabel();
 	labelCaption->setText("General settings");
 	labelCaption->setStyleSheet("font: 75 11pt;");
@@ -85,6 +90,13 @@ settingsDialog::settingsDialog(QWidget *parent, Settings appSet) : QDialog(paren
 	this->findChild<QLineEdit*>("editProxyUser", Qt::FindChildrenRecursively)->setText(settings.value("proxy/user", "").toString());
 	this->findChild<QLineEdit*>("editProxyPassword", Qt::FindChildrenRecursively)->setText(settings.value("proxy/password", "").toString());
 	this->findChild<QCheckBox*>("checkBoxUseProxy", Qt::FindChildrenRecursively)->setChecked(settings.value("proxy/enabled", "false").toBool());
+
+#if defined(VK_USE_PLATFORM_OHOS)
+	// Fields take focus on click only, so opening the dialog raises no keyboard
+	foreach (QLineEdit *edit, findChildren<QLineEdit *>()) {
+		edit->setFocusPolicy(Qt::ClickFocus);
+	}
+#endif
 }
 
 

@@ -64,7 +64,14 @@ SubmitDialog::SubmitDialog(QWidget *parent, QString submitter, QString caption) 
 	formLayout->addWidget(buttonBox);
 
 	setLayout(formLayout);
-	setWindowTitle(caption);    
+	setWindowTitle(caption);
+
+#if defined(VK_USE_PLATFORM_OHOS)
+	// Fields take focus on click only, so opening the dialog raises no keyboard
+	foreach (QLineEdit *edit, findChildren<QLineEdit *>()) {
+		edit->setFocusPolicy(Qt::ClickFocus);
+	}
+#endif
 }
 
 

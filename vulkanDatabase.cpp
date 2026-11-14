@@ -116,6 +116,12 @@ int VulkanDatabase::getReportId(VulkanDeviceInfo device)
 	url += "&androidproductmodel=" + QString::fromStdString(device.platformdetails["android.ProductModel"]);
 	url += "&androidproductmanufacturer=" + QString::fromStdString(device.platformdetails["android.ProductManufacturer"]);
 #endif
+#if defined(VK_USE_PLATFORM_OHOS)
+	// An OHOS device name is the GPU name only, so the SoC and device are part
+	// of the lookup key as well. Servers that do not know these ignore them.
+	url += "&ohosproductmodel=" + QString::fromStdString(device.platformdetails["ohos.ProductModel"]);
+	url += "&ohosproductmanufacturer=" + QString::fromStdString(device.platformdetails["ohos.ProductManufacturer"]);
+#endif
 	url = encodeUrl(url);
 	reply = httpGet(url);
 	return (!reply.isEmpty()) ? reply.toInt() : -1;
