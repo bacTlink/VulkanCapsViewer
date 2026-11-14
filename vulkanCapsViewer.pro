@@ -23,7 +23,7 @@ win32 {
     }
     LIBS += Advapi32.lib
 }
-linux:!android {
+linux:!android:!ohos {
     LIBS += -lvulkan
     contains(DEFINES, X11) {
         message("Building for X11")
@@ -57,6 +57,13 @@ android {
         android/build.gradle \
         android/res/values/libs.xml
 }
+ohos {
+    DEFINES += VK_USE_PLATFORM_OHOS
+    LIBS += -lvulkan
+    LIBS += -ldeviceinfo_ndk.z
+    LIBS += -lnative_image
+}
+
 macx {
     DEFINES += VK_USE_PLATFORM_METAL_EXT
     VULKAN_DYLIB = $(VULKAN_SDK)/lib/libvulkan.dylib
@@ -80,7 +87,12 @@ DEPENDPATH += .
 android {
     MOC_DIR = ./GeneratedFiles/release_$${QT_ARCH}
     OBJECTS_DIR = release_$${QT_ARCH}
-} else {
+}
+ohos {
+    MOC_DIR = ./GeneratedFiles/release_ohos_$${QT_ARCH}
+    OBJECTS_DIR = release_ohos_$${QT_ARCH}
+}
+!android:!ohos {
     MOC_DIR = ./GeneratedFiles/release
     OBJECTS_DIR = release
 }

@@ -15,7 +15,22 @@ if(WIN32)
     endif()
 endif()
 
+# VKCAPS_HARMONYOS asks for the HarmonyOS build: cmake/HarmonyOS.cmake supplies
+# the SDK and the Qt kit, which project() reads while it loads the toolchain.
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/HarmonyOS.cmake")
+vkcaps_harmonyos_toolchain()
+
 project(VK_CAPS_VIEWER LANGUAGES CXX)
+
+# Qt for HarmonyOS reports the target system as OHOS
+if(CMAKE_SYSTEM_NAME STREQUAL "OHOS")
+    set(OHOS TRUE)
+    vkcaps_harmonyos_hvigor()
+endif()
+
+
+set(VKCAPS_HARMONYOS_BUNDLE_NAME "org.gpuinfo.vulkancapsviewer"
+    CACHE STRING "HarmonyOS bundle name")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -41,6 +56,26 @@ if(NOT APPLE)
     if(WIN32)
         add_executable(vulkanCapsViewer WIN32 ${FILES_ALL} ${FILES_UI})
         target_compile_definitions(vulkanCapsViewer PRIVATE _CRT_SECURE_NO_WARNINGS VK_USE_PLATFORM_WIN32_KHR)
+    elseif(OHOS)
+        # qt_add_executable: only that target kind gets the HAP target
+        qt_add_executable(vulkanCapsViewer ${FILES_ALL} ${FILES_UI})
+        target_compile_definitions(vulkanCapsViewer PRIVATE VK_USE_PLATFORM_OHOS)
+
+        # HAP metadata, read by harmonydeployqt
+        set_target_properties(vulkanCapsViewer PROPERTIES
+            QT_HARMONYOS_APP_BUNDLE_NAME  "${VKCAPS_HARMONYOS_BUNDLE_NAME}"
+            QT_HARMONYOS_APP_NAME         "VulkanCapsViewer"
+            QT_HARMONYOS_APP_LABEL        "Vulkan Caps Viewer"
+            QT_HARMONYOS_APP_VENDOR       "VulkanCapsViewer"
+            QT_HARMONYOS_APP_VERSION_NAME "4.13"
+            QT_HARMONYOS_APP_VERSION_CODE 413
+            QT_HARMONYOS_MODULE_DESCRIPTION "Vulkan hardware capability viewer"
+            QT_HARMONYOS_MODULE_DEVICE_TYPES "default;tablet;2in1;phone"
+            QT_HARMONYOS_ABILITY_ORIENTATION "auto_rotation"
+            QT_HARMONYOS_COMPATIBLE_SDK_VERSION "6.1.0(23)"
+            QT_HARMONYOS_TARGET_SDK_VERSION     "6.1.0(23)"
+            QT_HARMONYOS_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ohos"
+        )
     else()
         # Linux only
         add_executable(vulkanCapsViewer ${FILES_ALL} ${FILES_UI})
@@ -72,7 +107,10 @@ target_compile_definitions(vulkanCapsViewer PRIVATE QT_WIDGETS_LIB)
 
 # Define GNU standard installation directories.
 include(GNUInstallDirs)
-install(TARGETS vulkanCapsViewer DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(NOT OHOS)
+    # OHOS is packaged into a HAP
+    install(TARGETS vulkanCapsViewer DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 if (NOT VULKAN_HEADERS_INSTALL_DIR)
     # By default use the Vulkan-Headers submodule
@@ -85,6 +123,9 @@ target_compile_definitions(vulkanCapsViewer PRIVATE ${VULKANCAPSVIEWER_DEFINITIO
 if(NOT APPLE)
     if(WIN32)
         target_link_libraries(vulkanCapsViewer Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network "${VULKAN_LOADER_INSTALL_DIR}/lib/vulkan-1.lib")
+    elseif(OHOS)
+        target_link_libraries(vulkanCapsViewer PRIVATE
+            Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network vulkan deviceinfo_ndk.z native_image)
     else()
         # Linux...
         set(LINUX_LINK_LIBRARIES Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Network "${VULKAN_LOADER_INSTALL_DIR}/lib/libvulkan.so")
@@ -120,4 +161,15 @@ endif()
 
 get_target_property(QMAKE_EXE Qt6::qmake IMPORTED_LOCATION)
 get_filename_component(QT_BIN_DIR "${QMAKE_EXE}" DIRECTORY)
+
+if(OHOS)
+    # Deferred: Qt creates the HAP target from a finalizer.
+    cmake_language(DEFER CALL _vkcaps_build_hap_by_default)
+endif()
+
+function(_vkcaps_build_hap_by_default)
+    if(TARGET vulkanCapsViewer_make_hap)
+        add_custom_target(vulkanCapsViewer_hap ALL DEPENDS vulkanCapsViewer_make_hap)
+    endif()
+endfunction()
 
