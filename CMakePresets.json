@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "configurePresets": [
+    {
+      "name": "ohos",
+      "displayName": "HarmonyOS (arm64-v8a)",
+      "description": "Cross-build the Qt module and package it into a HAP. Qt is located through qmake and the HarmonyOS SDK from OHOS_SDK_ROOT, DEVECO_SDK_HOME, or the DevEco Studio install.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-ohos",
+      "cacheVariables": {
+        "VKCAPS_HARMONYOS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ohos",
+      "configurePreset": "ohos"
+    }
+  ]
+}
