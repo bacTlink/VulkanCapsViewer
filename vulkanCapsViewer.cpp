@@ -65,6 +65,11 @@
 #include <wayland-client.h>
 #endif
 
+#if defined(VK_USE_PLATFORM_OHOS)
+#include <deviceinfo.h>
+#include <native_image/native_image.h>
+#endif
+
 #ifdef __APPLE__
 #include <vulkan/vulkan_metal.h>
 
@@ -77,6 +82,18 @@ extern "C" void *makeViewMetalCompatible(void* handle);
 
 const QString VulkanCapsViewer::version = "4.13";
 const QString VulkanCapsViewer::reportVersion = "4.2";
+
+#if defined(VK_USE_PLATFORM_OHOS)
+// "2in1", "tv" and "car" are not mobile form factors
+static bool isMobileDevice()
+{
+    const std::string deviceType = deviceInfoValue(OH_GetDeviceType());
+    if (deviceType.empty() || deviceType == "2in1" || deviceType == "tv" || deviceType == "car") {
+        return false;
+    }
+    return true;
+}
+#endif
 
 OSInfo getOperatingSystem()
 {
@@ -116,6 +133,23 @@ OSInfo getOperatingSystem()
 #if defined(VK_USE_PLATFORM_METAL_EXT)
     osInfo.type = 3;
 #endif
+#if defined(VK_USE_PLATFORM_OHOS)
+    // TODO: revisit once it is decided whether OHOS gets its own ostype
+    osInfo.type = 1;
+    // QSysInfo reports the bare name "harmonyos"
+    const std::string distribution = deviceInfoValue(OH_GetDistributionOSName());
+    if (!distribution.empty()) {
+        osInfo.name = distribution;
+    }
+    const std::string distributionVersion = deviceInfoValue(OH_GetDistributionOSVersion());
+    if (!distributionVersion.empty()) {
+        osInfo.version = distributionVersion;
+    }
+    const std::string abiList = deviceInfoValue(OH_GetAbiList());
+    if (!abiList.empty()) {
+        osInfo.architecture = abiList;
+    }
+#endif
 
     return osInfo;
 }
@@ -132,7 +166,7 @@ QString arrayToStr(QVariant value) {
     return "[" + imploded + "]";
 }
 
-#if defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_ANDROID_KHR)
+#if defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_OHOS)
 void setTouchProps(QWidget *widget) {
     QScroller *scroller = QScroller::scroller(widget);
     QScrollerProperties properties = scroller->scrollerProperties();
@@ -192,41 +226,50 @@ VulkanCapsViewer::VulkanCapsViewer(QWidget *parent)
     }
 #endif
     
-#if defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_ANDROID_KHR)
     // Adjust toolbar to better fit mobile devices
-    foreach (QToolButton *toolButton, findChildren<QToolButton *>()) {
-        toolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    }
-    ui.toolButtonSave->setVisible(false);
-    // Touch scrolling
-    foreach (QTreeView *widget, findChildren<QTreeWidget  *>()) {
-        setTouchProps(widget);
-        widget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        widget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        widget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-        widget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-        widget->setSelectionMode(QAbstractItemView::NoSelection);
-        widget->setFrameStyle(QFrame::NoFrame);
-    }
+    // iOS and Android are always mobile, OHOS only on phones and tablets
+#if defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(VK_USE_PLATFORM_OHOS)
+    bool touchLayout = true;
+#if defined(VK_USE_PLATFORM_OHOS)
+    touchLayout = isMobileDevice();
+#endif
+    if (touchLayout) {
+        foreach (QToolButton *toolButton, findChildren<QToolButton *>()) {
+            toolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        }
+        ui.toolButtonSave->setVisible(false);
+        // Touch scrolling
+        foreach (QTreeView *widget, findChildren<QTreeWidget  *>()) {
+            setTouchProps(widget);
+            widget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            widget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            widget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+            widget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+            widget->setSelectionMode(QAbstractItemView::NoSelection);
+            widget->setFrameStyle(QFrame::NoFrame);
+        }
 
-    foreach (QTreeView *widget, findChildren<QTreeView *>()) {
-        setTouchProps(widget);
-        widget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        widget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        widget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-        widget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-        widget->setSelectionMode(QAbstractItemView::NoSelection);
-        widget->setFrameStyle(QFrame::NoFrame);
-    }
+        foreach (QTreeView *widget, findChildren<QTreeView *>()) {
+            setTouchProps(widget);
+            widget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            widget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            widget->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+            widget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+            widget->setSelectionMode(QAbstractItemView::NoSelection);
+            widget->setFrameStyle(QFrame::NoFrame);
+        }
 
-    // No identation
-    for (int i = 0; i < ui.tabWidgetDevice->count(); i++) {
-//        ui.tabWidgetDevice->widget(i)->layout()->setMargin(0);
-    }
+        // No identation
+        for (int i = 0; i < ui.tabWidgetDevice->count(); i++) {
+    //        ui.tabWidgetDevice->widget(i)->layout()->setMargin(0);
+        }
 
-    QTabBar *tabBar = ui.tabWidgetDevice->findChild<QTabBar *>();
-    tabBar->hide();
-    ui.comboBox->setVisible(true);
+        QTabBar *tabBar = ui.tabWidgetDevice->findChild<QTabBar *>();
+        tabBar->hide();
+        ui.comboBox->setVisible(true);
+    } else {
+        ui.comboBox->setVisible(false);
+    }
 #else
     ui.comboBox->setVisible(false);
 #endif
@@ -326,6 +369,13 @@ VulkanCapsViewer::~VulkanCapsViewer()
     if (vulkanContext.instance != VK_NULL_HANDLE) {
         vkDestroyInstance(vulkanContext.instance, nullptr);
     }
+#if defined(VK_USE_PLATFORM_OHOS)
+    // Borrowed from the consumer surface, which owns it
+    consumerNativeWindow = nullptr;
+    if (consumerSurface) {
+        OH_NativeImage_Destroy(&consumerSurface);
+    }
+#endif
 }
 
 void VulkanCapsViewer::slotClose()
@@ -641,6 +691,9 @@ bool VulkanCapsViewer::initVulkan()
 #if defined(VK_USE_PLATFORM_METAL_EXT)
     VK_EXT_METAL_SURFACE_EXTENSION_NAME,
 #endif
+#if defined(VK_USE_PLATFORM_OHOS)
+    VK_OHOS_SURFACE_EXTENSION_NAME,
+#endif
     };
 
     std::vector<const char*> enabledExtensions = {};
@@ -935,6 +988,35 @@ bool VulkanCapsViewer::initVulkan()
     }
 #endif
 
+#if defined(VK_USE_PLATFORM_OHOS)
+    // Offscreen surface
+    if (!vulkanContext.surface &&
+        std::find(surfaceExtensionsAvailable.begin(), surfaceExtensionsAvailable.end(),
+                  VK_OHOS_SURFACE_EXTENSION_NAME) != std::end(surfaceExtensionsAvailable))
+    {
+        vulkanContext.surfaceExtension = VK_OHOS_SURFACE_EXTENSION_NAME;
+
+        // Standalone buffer queue consumer, it hands out its own window
+        consumerSurface = OH_ConsumerSurface_Create();
+        if (consumerSurface)
+        {
+            // One fixed size serves every device
+            if (OH_ConsumerSurface_SetDefaultSize(consumerSurface, 1920, 1080) == 0)
+            {
+                consumerNativeWindow = OH_NativeImage_AcquireNativeWindow(consumerSurface);
+            }
+        }
+
+        if (consumerNativeWindow)
+        {
+            VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
+            surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_SURFACE_CREATE_INFO_OHOS;
+            surfaceCreateInfo.window = consumerNativeWindow;
+            surfaceResult = vkCreateSurfaceOHOS(vulkanContext.instance, &surfaceCreateInfo, nullptr, &vulkanContext.surface);
+        }
+    }
+#endif
+
     if (surfaceResult != VK_SUCCESS) {
         vulkanContext.surface = VK_NULL_HANDLE;
         vulkanContext.surfaceExtension = "" ;
@@ -1085,8 +1167,8 @@ void VulkanCapsViewer::getGPUs()
         QMessageBox::warning(this, tr("Error"), "Could not find a GPU with Vulkan support!");
     }
 
-    // Only display device selection of more than once device is present (Android only)
-#ifdef __ANDROID__
+    // Only display device selection of more than once device is present
+#if defined(__ANDROID__) || defined(VK_USE_PLATFORM_OHOS)
     ui.widgetDeviceSelection->setVisible(vulkanGPUs.size() > 1);
 #endif
 }
@@ -1442,7 +1524,13 @@ void VulkanCapsViewer::displayDeviceProperties(VulkanDeviceInfo *device)
         addVkBool32Item(core10SparseItem[0], iter);
     }
 #if !defined(__ANDROID__)
-    ui.treeViewDeviceProperties->expandAll();
+    bool expandProperties = true;
+#if defined(VK_USE_PLATFORM_OHOS)
+    expandProperties = !isMobileDevice();
+#endif
+    if (expandProperties) {
+        ui.treeViewDeviceProperties->expandAll();
+    }
 #endif
     ui.treeViewDeviceProperties->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 

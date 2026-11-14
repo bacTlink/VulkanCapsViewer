@@ -48,6 +48,15 @@
 #include <sys/system_properties.h>
 #endif
 
+#if defined(VK_USE_PLATFORM_OHOS)
+#include <deviceinfo.h>
+// Property accessors return a null pointer when the property is not set
+inline std::string deviceInfoValue(const char* value)
+{
+    return value ? std::string(value) : std::string();
+}
+#endif
+
 #include "vulkanAndroid.h"
 #if !defined(DISABLE_PROFILES)
 #include "vulkan_profiles.hpp"

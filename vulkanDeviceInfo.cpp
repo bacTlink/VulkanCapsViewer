@@ -906,6 +906,24 @@ void VulkanDeviceInfo::readPlatformDetails()
     platformdetails["android.BuildVersionIncremental"] = getSystemProperty("ro.build.version.incremental");
     properties["displayName"] = QString::fromStdString(platformdetails["android.ProductManufacturer"] + " " + platformdetails["android.ProductModel"]);
 #endif
+
+    // OHOS specific build info
+#if defined(VK_USE_PLATFORM_OHOS)
+    qInfo() << "Reading OHOS platform details";
+    platformdetails["ohos.ProductModel"] = deviceInfoValue(OH_GetProductModel());
+    platformdetails["ohos.ProductManufacturer"] = deviceInfoValue(OH_GetManufacture());
+    platformdetails["ohos.ProductBrand"] = deviceInfoValue(OH_GetBrand());
+    platformdetails["ohos.DeviceType"] = deviceInfoValue(OH_GetDeviceType());
+    platformdetails["ohos.MarketName"] = deviceInfoValue(OH_GetMarketName());
+    platformdetails["ohos.OsFullName"] = deviceInfoValue(OH_GetOSFullName());
+    platformdetails["ohos.DisplayVersion"] = deviceInfoValue(OH_GetDisplayVersion());
+    platformdetails["ohos.DistributionOsName"] = deviceInfoValue(OH_GetDistributionOSName());
+    platformdetails["ohos.DistributionOsVersion"] = deviceInfoValue(OH_GetDistributionOSVersion());
+    platformdetails["ohos.AbiList"] = deviceInfoValue(OH_GetAbiList());
+    const int32_t sdkApiVersion = OH_GetSdkApiVersion();
+    platformdetails["ohos.SdkApiVersion"] = sdkApiVersion > 0 ? std::to_string(sdkApiVersion) : std::string();
+    properties["displayName"] = QString::fromStdString(platformdetails["ohos.ProductManufacturer"] + " " + platformdetails["ohos.ProductModel"]);
+#endif
 }
 
 void VulkanDeviceInfo::readProfiles()

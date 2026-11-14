@@ -46,6 +46,11 @@
     extern "C" void setWorkingFolderForiOS(void);
 #endif
 
+#if defined(VK_USE_PLATFORM_OHOS)
+// Opaque handle from <native_image/native_image.h>
+typedef struct OH_NativeImage OH_NativeImage;
+#endif
+
 #if defined(VK_USE_PLATFORM_METAL_EXT)
 // An unseen window for macOS and iOS that has a Metal surface
 // attached.
@@ -86,7 +91,7 @@ private:
     int selectedDeviceIndex = 0;
 #if defined(VK_USE_PLATFORM_METAL_EXT)
     QVukanSurrogate *pMetalSurrogate = nullptr;
-#endif    
+#endif
     Ui::vulkanCapsViewerClass ui;
     struct {
         CustomFilterProxyModel propertiesCore10;
@@ -125,6 +130,10 @@ private:
     QFont boldFont;
 #ifdef ANDROID
     ANativeWindow* nativeWindow = nullptr;
+#endif
+#if defined(VK_USE_PLATFORM_OHOS)
+    OH_NativeImage* consumerSurface = nullptr;
+    OHNativeWindow* consumerNativeWindow = nullptr;
 #endif
     bool initVulkan();
     void getGPUinfo(VulkanDeviceInfo *GPU, uint32_t id, VkPhysicalDevice device);
