@@ -14,6 +14,7 @@ The hardware reports can be submitted to a public [online database](https://vulk
 - Windows (x64)
 - Linux (x64)
 - Android (Including Android TV)
+- HarmonyOS (arm64-v8a)
 - Mac OS X
 - iOS
 
@@ -47,6 +48,10 @@ Note: Do not enable both flags simultaneously.
 ## Android
 
 The Android apk needs to be built from Qt Creator and requires Android SDK and Android NDK. Due to issues with widget rendering in certain Qt6 versions.
+
+## HarmonyOS
+
+Requires [Qt for HarmonyOS](https://doc.qt.io/qt-6/harmonyos.html) 6.12.1 or newer and CMake 3.25 or newer, plus either DevEco Studio or the Command Line Tools with a JDK. Only tested on a Windows host so far. See [docs/ohos_build.md](docs/ohos_build.md) for building and signing the HAP.
 
 # Releases
 Current releases for all platforms will be provided on a regular basis at [vulkan.gpuinfo.org/download.php](https://vulkan.gpuinfo.org/download.php).
