@@ -1,0 +1,14 @@
+{
+  "app": {
+    // Overwritten by harmonydeployqt from VKCAPS_HARMONYOS_BUNDLE_NAME in
+    // CMakeLists.txt, which is the value that ends up in the HAP. Keep the two
+    // in step so the template is still valid on its own.
+    "bundleName": "org.gpuinfo.vulkancapsviewer",
+    "configuration": "$profile:configuration",
+    "vendor": "VulkanCapsViewer",
+    "versionCode": 413,
+    "versionName": "4.13",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}

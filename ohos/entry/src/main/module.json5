@@ -1,0 +1,69 @@
+{
+  "module": {
+    "name": "entry",
+    "type": "entry",
+    "srcEntry": "./ets/qabilitystage/QAbilityStage.ets",
+    "description": "$string:module_desc",
+    "mainElement": "QAbility",
+    "deviceTypes": [
+      "default",
+      "tablet",
+      "2in1",
+      "phone"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "QAbility",
+        "srcEntry": "./ets/qability/QAbility.ets",
+        "launchType": "specified",
+        "orientation": "auto_rotation",
+        "description": "$string:QAbility_desc",
+        "icon": "$media:layered_image",
+        "label": "$string:QAbility_label",
+        "startWindowIcon": "$media:startIcon",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true,
+        "isolationProcess": true,
+        "skills": [
+          {
+            "entities": [
+              "entity.system.home"
+            ],
+            "actions": [
+              "action.system.home",
+              "ohos.want.action.sendData",
+            ],
+            "uris": [
+              {
+                "scheme": "file",
+                "utd": "general.text",
+                "maxFileSupported": 10
+              },
+              {
+                "scheme": "file",
+                "utd": "general.png",
+                "maxFileSupported": 10
+              },
+              {
+                "scheme": "file",
+                "utd": "general.jpeg",
+                "maxFileSupported": 10
+              },
+            ]
+          }
+        ],
+        "metadata": [
+          {
+            "name": 'enable.remove.starting.window',
+            "value": 'true'
+          }
+        ],
+        "continuable": true
+      }
+    ],
+    "requestPermissions": [/* %%INSERT_PERMISSIONS%% */]
+  }
+}
