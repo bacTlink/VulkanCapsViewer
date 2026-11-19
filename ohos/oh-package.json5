@@ -1,0 +1,12 @@
+{
+  "modelVersion": "5.0.0",
+  "license": "LGPL-3.0",
+  "devDependencies": {
+  },
+  "author": "",
+  "name": "vulkanCapsViewer",
+  "description": "Vulkan hardware capability viewer",
+  "main": "",
+  "version": "1.0.0",
+  "dependencies": {}
+}

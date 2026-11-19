@@ -1,0 +1,12 @@
+{
+  "license": "LGPL-3.0",
+  "devDependencies": {
+    "@types/libqohos.so": "file:./src/main/qt"
+  },
+  "author": "",
+  "name": "entry",
+  "description": "Vulkan Caps Viewer entry module",
+  "main": "",
+  "version": "1.0.0",
+  "dependencies": {}
+}
